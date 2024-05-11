@@ -390,7 +390,10 @@ func ListTablesInComponents() ([]string, error) {
 		if err := rows.Scan(&tableName); err != nil {
 			return nil, err
 		}
-		tables = append(tables, tableName)
+		// Ignore GIS initial config table in PostgreSQL
+		if !(tableName == "spatial_ref_sys") {
+			tables = append(tables, tableName)
+		}
 	}
 
 	return tables, nil
