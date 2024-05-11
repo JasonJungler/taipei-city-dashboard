@@ -367,7 +367,7 @@ func ListTablesInComponents() ([]string, error) {
 	var tables []string
 
 	// Query the information schema to fetch table names
-	rows, err := DBManager.Raw("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'").Rows()
+	rows, err := DBDashboard.Raw("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'").Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -380,11 +380,6 @@ func ListTablesInComponents() ([]string, error) {
 			return nil, err
 		}
 		tables = append(tables, tableName)
-	}
-
-	// Check for any errors during row iteration
-	if err := rows.Err(); err != nil {
-		return nil, err
 	}
 
 	return tables, nil
