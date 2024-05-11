@@ -183,3 +183,16 @@ func ListTablesInComponentsHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "success", "tables": tables})
 }
+
+func GetDataCsv(c *gin.Context) {
+	tableName := c.Param("id")
+	data, err := models.GetAllDataFromTable(tableName)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+
+	// Return the components
+	c.JSON(http.StatusOK, gin.H{"status": "success", "data": data})
+}

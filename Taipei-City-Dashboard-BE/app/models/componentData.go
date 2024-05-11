@@ -395,3 +395,65 @@ func ListTablesInComponents() ([]string, error) {
 
 	return tables, nil
 }
+
+// Function to get all data from a table in the DBDashboard
+func GetAllDataFromTable(tableName string) ([]map[string]interface{}, error) {
+	db := DBDashboard
+	// Check if the table exists
+	if !db.Migrator().HasTable(tableName) {
+		return nil, fmt.Errorf("table %s does not exist", tableName)
+	}
+
+	// Construct the SQL query to select all data from the table
+	query := fmt.Sprintf("SELECT * FROM public.%s", tableName)
+
+	// Execute the SQL query
+	rows, err := db.Raw(query).Rows()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Fetch column names
+	columns, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+
+	// Prepare a slice to hold the result
+	var result []map[string]interface{}
+
+	// Iterate over the rows and fetch data
+	for rows.Next() {
+		// Prepare a slice to hold the values of each row
+		values := make([]interface{}, len(columns))
+		valuePtrs := make([]interface{}, len(columns))
+		for i := range columns {
+			valuePtrs[i] = &values[i]
+		}
+
+		// Scan the row into the values slice
+		if err := rows.Scan(valuePtrs...); err != nil {
+			return nil, err
+		}
+
+		// Construct a map for the current row
+		rowMap := make(map[string]interface{})
+		for i, col := range columns {
+			var v interface{}
+			val := values[i]
+			b, ok := val.([]byte)
+			if ok {
+				v = string(b)
+			} else {
+				v = val
+			}
+			rowMap[col] = v
+		}
+
+		// Append the row map to the result
+		result = append(result, rowMap)
+	}
+
+	return result, nil
+}

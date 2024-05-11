@@ -95,8 +95,12 @@ function trimQuery(query) {
     return query;
 }
 
-function handleGetCsv(){
-	console.log(newInputStorage.value.index)
+async function handleGetCsv(){
+  const datasetIndex = newInputStorage.value.index;
+  const csvData = await http.get(`/helper/data-csv/${datasetIndex}`);
+	console.log("csv: ", csvData);
+  console.log("data: ", csvData.data);
+
 }
 
 async function handlePushSqlData() {
@@ -229,7 +233,8 @@ watch(
                 :value="newInputStorage.id"
                 disabled
               >
-			  <select v-model="newInputStorage.index" @change="handleGetCsv()">
+			  <select v-model="newInputStorage.index" 
+                @change="handleGetCsv()">
 				<option :value="item" v-for="item in alllist" :key="item">
 				{{item}}
 				</option>

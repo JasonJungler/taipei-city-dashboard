@@ -133,5 +133,6 @@ func configureQueryRoutes() {
 	{
 		queryRoutes.POST("/query", controllers.QueryChartData)
 		queryRoutes.GET("/list-tables", controllers.ListTablesInComponentsHandler)
+		queryRoutes.GET("/data-csv/:id", controllers.GetDataCsv)
 	}
 }
