@@ -234,14 +234,14 @@ func CreateComponent(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error()})
 		return
 	}
-	// !TODO: validate SQL for safety
-	// err := c.ShouldBindJSON(&component)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error()})
-	// 	return
-	// }
+	// 2. Validate SQL for safety
+	queryError := models.QueryValidation(component.QueryChart)
+	if queryError != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": queryError.Error()})
+		return
+	}
 
-	// 2. Create the component
+	// 3. Create the component
 	createdComponent, err := models.CreateComponent(
 		component.Index, // must be valid dataset
 		component.Name,
@@ -268,7 +268,7 @@ func CreateComponent(c *gin.Context) {
 		return
 	}
 
-	// 3. Return the created component
+	// 4. Return the created component
 	c.JSON(http.StatusCreated, gin.H{"status": "success", "data": createdComponent})
 }
 
