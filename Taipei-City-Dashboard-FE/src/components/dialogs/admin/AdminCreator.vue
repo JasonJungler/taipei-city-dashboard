@@ -141,11 +141,8 @@ watch(
     () => dialogStore.dialogs.adminCreator, 
     async (newValue, oldValue) => {
       if (newValue === true) {
-        
         const response = await http.get("/helper/list-tables");
-        console.log("response: ", response.data.tables);
         alllist.value = response.data.tables;
-        console.log("all list: ", alllist);
       }
     }
 );
@@ -227,11 +224,12 @@ watch(
                 :value="newInputStorage.id"
                 disabled
               >
-              <input
-                type="text"
-                :value="newInputStorage.index"
-                disabled
-              >
+			  <select v-model="newInputStorage.index">
+				<option :value="item" v-for="item in alllist" :key="item">
+				{{item}}
+				</option>
+			</select>
+           
             </div>
             <label>圖表資料型態 Query Type</label>
             <select v-model="newInputStorage.query_type">
@@ -820,6 +818,9 @@ watch(
 			display: grid;
 			grid-template-columns: 1fr 1fr;
 			column-gap: 0.5rem;
+			select{
+				width: 100%;
+			}
 		}
 		.three-block {
 			display: grid;
