@@ -8,6 +8,8 @@ import { useContentStore } from "../../store/contentStore";
 import TableHeader from "../../components/utilities/forms/TableHeader.vue";
 import ComponentTag from "../../components/utilities/miscellaneous/ComponentTag.vue";
 import AdminComponentSettings from "../../components/dialogs/admin/AdminComponentSettings.vue";
+import AdminDeleteComponent from "../../components/dialogs/admin/AdminDeleteComponent.vue";
+
 
 import { chartTypes } from "../../assets/configs/apexcharts/chartTypes";
 import { mapTypes } from "../../assets/configs/mapbox/mapConfig";
@@ -85,6 +87,12 @@ function handleOpenSettings(component) {
 	adminStore.getComponentData(component);
 	dialogStore.showDialog("adminComponentSettings");
 }
+
+function handleDeleteComponent(component) {
+  adminStore.currentComponent =  JSON.parse(JSON.stringify(component));
+	dialogStore.showDialog("adminDeleteComponent");
+}
+
 
 onMounted(() => {
 	adminStore.getPublicComponents(searchParams.value);
@@ -195,6 +203,9 @@ onMounted(() => {
           <td class="admineditcomponent-table-settings">
             <button @click="handleOpenSettings(component)">
               <span>settings</span>
+            </button>
+            <button @click="handleDeleteComponent(component)">
+              <span>delete</span>
             </button>
           </td>
           <td>{{ component.id }}</td>
@@ -311,6 +322,7 @@ onMounted(() => {
       </div>
     </div>
     <AdminComponentSettings :search-params="searchParams" />
+    <AdminDeleteComponent />
   </div>
 </template>
 
