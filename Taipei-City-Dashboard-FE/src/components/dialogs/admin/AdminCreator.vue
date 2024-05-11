@@ -141,10 +141,10 @@ watch(
     () => dialogStore.dialogs.adminCreator, 
     async (newValue, oldValue) => {
       if (newValue === true) {
-        // 去拉取全部資料表的名字
+        
         const response = await http.get("/helper/list-tables");
-        console.log("response: ", response);
-        alllist.value = response.tables;
+        console.log("response: ", response.data.tables);
+        alllist.value = response.data.tables;
         console.log("all list: ", alllist);
       }
     }
