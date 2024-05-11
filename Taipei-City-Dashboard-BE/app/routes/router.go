@@ -26,6 +26,7 @@ func ConfigureRoutes() {
 	configureComponentRoutes()
 	configureDashboardRoutes()
 	configureIssueRoutes()
+	configureSanatizeRoutes()
 }
 
 func configureAuthRoutes() {
@@ -120,4 +121,14 @@ func configureIssueRoutes() {
 		issueRoutes.
 			PATCH("/:id", controllers.UpdateIssueByID)
 	}
+}
+
+func configureSanatizeRoutes() {
+	sanatizeRoutes := RouterGroup.Group("/sanatize")
+	sanatizeRoutes.Use(middleware.IsSysAdm())
+	{
+		sanatizeRoutes.
+			POST("/csv-to-utf-eight", controllers.HandleConvert)
+	}
+
 }
