@@ -107,7 +107,7 @@ function handleTestNewComponents() {
 }
 
 function handleOpenCreator() {
-	adminStore.getComponentData(adminStore.components[0]);
+	// adminStore.getComponentData(adminStore.components[0]);
 	dialogStore.showDialog("adminCreator");
 }
 

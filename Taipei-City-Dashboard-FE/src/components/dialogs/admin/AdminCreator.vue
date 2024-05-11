@@ -21,9 +21,8 @@ const adminStore = useAdminStore();
 
 const props = defineProps(["searchParams"]);
 
-const { currentComponent } = storeToRefs(adminStore);
 
-const currentSettings = ref("all");
+const currentSettings = ref("sql");
 const tempInputStorage = ref({
 	link: "",
 	contributor: "",
@@ -33,17 +32,19 @@ const tempInputStorage = ref({
 
 
 function handleConfirm() {
-	adminStore.updateComponent(props.searchParams);
 	handleClose();
 }
 
 function handleClose() {
-	currentSettings.value = "all";
+	currentSettings.value = "sql";
 	dialogStore.hideAllDialogs();
-	adminStore.currentComponent = null;
 }
+function handleSelectOthers(input){
+	currentSettings.value = input;
+}
+
 const newInputStorage = ref({
-    "id": 82,
+    "id": null,
     "index": "",
     "name": "",
     "history_config": null,
@@ -75,19 +76,15 @@ const newInputStorage = ref({
     "short_desc": "",
     "long_desc": "",
     "use_case": "",
-    "links": [
-        ""
-    ],
-    "contributors": [
-        ""
-    ],
+    "links": [],
+    "contributors": [],
     "updated_at": "",
     "query_type": "",
-    "chart_data": []
+    "chart_data": [],
+	"query_chart": ""
 })
 
 onMounted(()=>{
-	
 })
 
 </script>
@@ -100,49 +97,57 @@ onMounted(()=>{
     <div class="adminCreator">
       <div class="adminCreator-header">
         <h2>組件設定</h2>
-        <button @click="handleConfirm">
-          確定更改
+        <button 
+		v-if="newInputStorage.chart_data.length!=0"
+		 @click="handleConfirm" >
+          確定新增
         </button>
       </div>
       <div class="adminCreator-tabs">
+		<button
+          :class="{ active: currentSettings === 'sql' }"
+          @click="handleSelectOthers('sql')"
+        >
+          基設
+        </button>
         <button
+		  v-if="newInputStorage.chart_data.length!=0"
           :class="{ active: currentSettings === 'all' }"
-          @click="currentSettings = 'all'"
+          @click="handleSelectOthers('all')"
         >
           整體
         </button>
         <button
+		v-if="newInputStorage.chart_data.length!=0"
+
           :class="{ active: currentSettings === 'chart' }"
-          @click="currentSettings = 'chart'"
+          @click="handleSelectOthers('chart')"
         >
           圖表
         </button>
-        <!-- <button
-          v-if="currentComponent.history_config !== null"
+      <button
+          v-if="newInputStorage.history_config !== null&&newInputStorage.chart_data.length!=0"
           :class="{ active: currentSettings === 'history' }"
-          @click="currentSettings = 'history'"
+          @click="handleSelectOthers('history')"
         >
           歷史軸
-        </button> -->
-        <!-- <button
-          v-if="currentComponent.map_config[0] !== null"
+        </button> 
+         <button
+          v-if="newInputStorage.map_config[0] !== null&&newInputStorage.chart_data.length!=0"
           :class="{ active: currentSettings === 'map' }"
-          @click="currentSettings = 'map'"
+          @click="handleSelectOthers('map')"
         >
           地圖
-        </button> -->
+        </button> 
       </div>
       <div class="adminCreator-content">
         <div class="adminCreator-settings">
-          <div
-            v-if="currentSettings === 'all'"
-            class="adminCreator-settings-items"
-          >
-            <label>組件名稱* ({{
-              currentComponent.name.length
+		<div v-if="currentSettings === 'sql'" class="adminCreator-settings-items">
+			<label>組件名稱* ({{
+              newInputStorage.name.length
             }}/10)</label>
             <input
-              v-model="currentComponent.name"
+              v-model="newInputStorage.name"
               type="text"
               :minlength="1"
               :maxlength="15"
@@ -155,18 +160,32 @@ onMounted(()=>{
             <div class="two-block">
               <input
                 type="text"
-                :value="currentComponent.id"
+                :value="newInputStorage.id"
                 disabled
               >
               <input
                 type="text"
-                :value="currentComponent.index"
+                :value="newInputStorage.index"
                 disabled
               >
             </div>
+			<label>sql設定</label>
+              <textarea
+                v-model="newInputStorage.query_chart"
+              />
+			  <div class="adminCreator-runsql">
+				<button >匯入資料</button>
+			  </div>
+		</div>
+
+          <div
+             v-else-if="currentSettings === 'all'"
+            class="adminCreator-settings-items"
+          >
+        
             <label>資料來源*</label>
             <input
-              v-model="currentComponent.source"
+              v-model="newInputStorage.source"
               type="text"
               :minlength="1"
               :maxlength="12"
@@ -175,13 +194,13 @@ onMounted(()=>{
             <label>更新頻率* (0 = 不定期更新)</label>
             <div class="two-block">
               <input
-                v-model="currentComponent.update_freq"
+                v-model="newInputStorage.update_freq"
                 type="number"
                 :min="0"
                 :max="31"
                 required
               >
-              <select v-model="currentComponent.update_freq_unit">
+              <select v-model="newInputStorage.update_freq_unit">
                 <option value="minute" />
                 <option value="hour">
                   時
@@ -203,52 +222,52 @@ onMounted(()=>{
             <label>資料區間</label>
             <!-- eslint-disable no-mixed-spaces-and-tabs -->
             <input
-              :value="`${timeTerms[currentComponent.time_from]}${
-                timeTerms[currentComponent.time_to]
+              :value="`${timeTerms[newInputStorage.time_from]}${
+                timeTerms[newInputStorage.time_to]
                   ? ' ~ ' +
-                    timeTerms[currentComponent.time_to]
+                    timeTerms[newInputStorage.time_to]
                   : ''
               }`"
               disabled
             >
             <label required>組件簡述* ({{
-              currentComponent.short_desc.length
+              newInputStorage.short_desc.length
             }}/50)</label>
             <textarea
-              v-model="currentComponent.short_desc"
+              v-model="newInputStorage.short_desc"
               :minlength="1"
               :maxlength="50"
               required
             />
             <label>組件詳述* ({{
-              currentComponent.long_desc.length
+              newInputStorage.long_desc.length
             }}/100)</label>
             <textarea
-              v-model="currentComponent.long_desc"
+              v-model="newInputStorage.long_desc"
               :minlength="1"
               :maxlength="100"
               required
             />
             <label>範例情境* ({{
-              currentComponent.use_case.length
+              newInputStorage.use_case.length
             }}/100)</label>
             <textarea
-              v-model="currentComponent.use_case"
+              v-model="newInputStorage.use_case"
               :minlength="1"
               :maxlength="100"
               required
             />
             <label>資料連結</label>
             <InputTags
-              :tags="currentComponent.links"
+              :tags="newInputStorage.links"
               @deletetag="
                 (index) => {
-                  currentComponent.links.splice(index, 1);
+                  newInputStorage.links.splice(index, 1);
                 }
               "
               @updatetagorder="
                 (updatedTags) => {
-                  currentComponent.links = updatedTags;
+                  newInputStorage.links = updatedTags;
                 }
               "
             />
@@ -259,7 +278,7 @@ onMounted(()=>{
               @keypress.enter="
                 () => {
                   if (tempInputStorage.link.length > 0) {
-                    currentComponent.links.push(
+                    newInputStorage.links.push(
                       tempInputStorage.link
                     );
                     tempInputStorage.link = '';
@@ -269,10 +288,10 @@ onMounted(()=>{
             >
             <label>貢獻者</label>
             <InputTags
-              :tags="currentComponent.contributors"
+              :tags="newInputStorage.contributors"
               @deletetag="
                 (index) => {
-                  currentComponent.contributors.splice(
+                  newInputStorage.contributors.splice(
                     index,
                     1
                   );
@@ -280,7 +299,7 @@ onMounted(()=>{
               "
               @updatetagorder="
                 (updatedTags) => {
-                  currentComponent.contributors = updatedTags;
+                  newInputStorage.contributors = updatedTags;
                 }
               "
             />
@@ -292,7 +311,7 @@ onMounted(()=>{
                   if (
                     tempInputStorage.contributor.length > 0
                   ) {
-                    currentComponent.contributors.push(
+                    newInputStorage.contributors.push(
                       tempInputStorage.contributor
                     );
                     tempInputStorage.contributor = '';
@@ -307,7 +326,7 @@ onMounted(()=>{
           >
             <label>圖表資料型態</label>
             <select
-              :value="currentComponent.query_type"
+              :value="newInputStorage.query_type"
               disabled
             >
               <option value="two_d">
@@ -328,7 +347,7 @@ onMounted(()=>{
             </select>
             <label>資料單位*</label>
             <input
-              v-model="currentComponent.chart_config.unit"
+              v-model="newInputStorage.chart_config.unit"
               type="text"
               :minlength="1"
               :maxlength="6"
@@ -337,24 +356,24 @@ onMounted(()=>{
             <label>圖表類型*（限3種，依點擊順序排列）</label>
             <SelectButtons
               :tags="
-                chartsPerDataType[currentComponent.query_type]
+                chartsPerDataType[newInputStorage.query_type]
               "
-              :selected="currentComponent.chart_config.types"
+              :selected="newInputStorage.chart_config.types"
               :limit="3"
               @updatetagorder="
                 (updatedTags) => {
-                  currentComponent.chart_config.types =
+                  newInputStorage.chart_config.types =
                     updatedTags;
                 }
               "
             />
             <label>圖表顏色</label>
             <InputTags
-              :tags="currentComponent.chart_config.color"
+              :tags="newInputStorage.chart_config.color"
               :color-data="true"
               @deletetag="
                 (index) => {
-                  currentComponent.chart_config.color.splice(
+                  newInputStorage.chart_config.color.splice(
                     index,
                     1
                   );
@@ -362,7 +381,7 @@ onMounted(()=>{
               "
               @updatetagorder="
                 (updatedTags) => {
-                  currentComponent.chart_config.color =
+                  newInputStorage.chart_config.color =
                     updatedTags;
                 }
               "
@@ -376,7 +395,7 @@ onMounted(()=>{
                   if (
                     tempInputStorage.chartColor.length === 7
                   ) {
-                    currentComponent.chart_config.color.push(
+                    newInputStorage.chart_config.color.push(
                       tempInputStorage.chartColor
                     );
                     tempInputStorage.chartColor = '#000000';
@@ -384,10 +403,10 @@ onMounted(()=>{
                 }
               "
             >
-            <div v-if="currentComponent.map_config[0] !== null">
+            <div v-if="newInputStorage.map_config[0] !== null">
               <label>地圖篩選</label>
               <textarea
-                v-model="currentComponent.map_filter"
+                v-model="newInputStorage.map_filter"
               />
             </div>
           </div>
@@ -407,22 +426,22 @@ onMounted(()=>{
                 'fiveyear_ago',
                 'tenyear_ago',
               ]"
-              :selected="currentComponent.history_config.range"
+              :selected="newInputStorage.history_config.range"
               :limit="5"
               @updatetagorder="
                 (updatedTags) => {
-                  currentComponent.history_config.range =
+                  newInputStorage.history_config.range =
                     updatedTags;
                 }
               "
             />
             <label>歷史軸顏色 (若無提供沿用圖表顏色)</label>
             <InputTags
-              :tags="currentComponent.history_config.color"
+              :tags="newInputStorage.history_config.color"
               :color-data="true"
               @deletetag="
                 (index) => {
-                  currentComponent.history_config.color.splice(
+                  newInputStorage.history_config.color.splice(
                     index,
                     1
                   );
@@ -430,7 +449,7 @@ onMounted(()=>{
               "
               @updatetagorder="
                 (updatedTags) => {
-                  currentComponent.history_config.color =
+                  newInputStorage.history_config.color =
                     updatedTags;
                 }
               "
@@ -445,7 +464,7 @@ onMounted(()=>{
                     tempInputStorage.historyColor.length ===
                     7
                   ) {
-                    currentComponent.history_config.color.push(
+                    newInputStorage.history_config.color.push(
                       tempInputStorage.historyColor
                     );
                     tempInputStorage.historyColor =
@@ -459,7 +478,7 @@ onMounted(()=>{
             <div
               v-for="(
                 map_config, index
-              ) in currentComponent.map_config"
+              ) in newInputStorage.map_config"
               :key="map_config.index"
               class="adminCreator-settings-items"
             >
@@ -468,13 +487,13 @@ onMounted(()=>{
               <div class="two-block">
                 <input
                   :value="
-                    currentComponent.map_config[index].id
+                    newInputStorage.map_config[index].id
                   "
                   disabled
                 >
                 <input
                   v-model="
-                    currentComponent.map_config[index].index
+                    newInputStorage.map_config[index].index
                   "
                   :maxlength="30"
                   :minlength="1"
@@ -483,12 +502,12 @@ onMounted(()=>{
               </div>
 
               <label>地圖{{ index + 1 }} 名稱* ({{
-                currentComponent.map_config[index].title
+                newInputStorage.map_config[index].title
                   .length
               }}/10)</label>
               <input
                 v-model="
-                  currentComponent.map_config[index].title
+                  newInputStorage.map_config[index].title
                 "
                 type="text"
                 :minlength="1"
@@ -498,7 +517,7 @@ onMounted(()=>{
               <label>地圖{{ index + 1 }} 類型*</label>
               <select
                 v-model="
-                  currentComponent.map_config[index].type
+                  newInputStorage.map_config[index].type
                 "
               >
                 <option
@@ -516,7 +535,7 @@ onMounted(()=>{
               <div class="two-block">
                 <select
                   v-model="
-                    currentComponent.map_config[index].size
+                    newInputStorage.map_config[index].size
                   "
                 >
                   <option :value="''">
@@ -534,7 +553,7 @@ onMounted(()=>{
                 </select>
                 <select
                   v-model="
-                    currentComponent.map_config[index].icon
+                    newInputStorage.map_config[index].icon
                   "
                 >
                   <option :value="''">
@@ -569,13 +588,13 @@ onMounted(()=>{
               <label>地圖{{ index + 1 }} Paint屬性</label>
               <textarea
                 v-model="
-                  currentComponent.map_config[index].paint
+                  newInputStorage.map_config[index].paint
                 "
               />
               <label>地圖{{ index + 1 }} Popup標籤</label>
               <textarea
                 v-model="
-                  currentComponent.map_config[index].property
+                  newInputStorage.map_config[index].property
                 "
               />
             </div>
@@ -587,8 +606,8 @@ onMounted(()=>{
               currentSettings === 'all' ||
                 currentSettings === 'chart'
             "
-            :key="`${currentComponent.index}-${currentComponent.chart_config.color}-${currentComponent.chart_config.types}`"
-            :config="JSON.parse(JSON.stringify(currentComponent))"
+            :key="`${newInputStorage.index}-${newInputStorage.chart_config.color}-${newInputStorage.chart_config.types}`"
+            :config="JSON.parse(JSON.stringify(newInputStorage))"
             mode="large"
           />
           <div
@@ -596,18 +615,52 @@ onMounted(()=>{
             :style="{ width: '300px' }"
           >
             <HistoryChart
-              :key="`${currentComponent.index}-${currentComponent.history_config.color}`"
-              :chart_config="currentComponent.chart_config"
-              :series="currentComponent.history_data"
+              :key="`${newInputStorage.index}-${newInputStorage.history_config.color}`"
+              :chart_config="newInputStorage.chart_config"
+              :series="newInputStorage.history_data"
               :history_config="
                 JSON.parse(
                   JSON.stringify(
-                    currentComponent.history_config
+                    newInputStorage.history_config
                   )
                 )
               "
             />
           </div>
+		  <div v-else-if="currentSettings === 'sql'" class="adminCreator__preData">
+			<p v-if="newInputStorage.chart_data.length!=0">尚未匯入資料</p>
+			<div class="adminCreator__preData-box">
+				<div class="adminCreator__preData-title">
+					<div>test1</div>
+					<div>test2</div>
+					<div>test3</div>
+					<div>test4</div>
+					<div>test5</div>
+					<div>test5</div>
+
+				</div>
+				<div class="adminCreator__preData-item">
+					<div>test1</div>
+					<div>test2</div>
+					<div>test3</div>
+					<div>test4</div>
+					<div>test5</div>
+					<div>test5</div>
+			
+					   
+					  
+				</div>
+				<div class="adminCreator__preData-item">
+					<div>test1</div>
+					<div>test2</div>
+					<div>test3</div>
+					<div>test4</div>
+					<div>test5</div>
+					<div>test5</div>
+				
+				</div>
+			</div>
+		</div>
           <div
             v-else-if="currentSettings === 'map'"
             index="componentsettings"
@@ -677,7 +730,19 @@ onMounted(()=>{
 			background-color: var(--color-complement-text);
 		}
 	}
-
+	&-runsql {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: var(--font-m);
+		button{
+			
+			background-color: var(--color-highlight);
+ 		   font-size: var(--font-ms);
+			padding: 2px 8px;
+	border-radius: 2px;
+	text-align: end;
+}
+	}
 	&-settings {
 		padding: 0 0.5rem 0.5rem 0.5rem;
 		margin-right: var(--font-ms);
@@ -765,5 +830,58 @@ onMounted(()=>{
 		border-radius: 5px;
 		border: solid 1px var(--color-border);
 	}
+	&__preData{
+		width: 100%;
+		height: 100%;
+		&-box{
+			display: block;
+			width: 100%;
+			height: 100%;
+			overflow-x: auto !important;
+			
+			&::-webkit-scrollbar {
+				width: 4px;
+				height: 4px;
+				-webkit-appearance: none;
+				-webkit-overflow-scrolling: auto;
+			}
+			&::-webkit-scrollbar-thumb {
+				background-color: rgba(136, 135, 135, 0.5);
+				border-radius: 4px;
+			
+
+			}
+			&::-webkit-scrollbar-thumb:hover {
+				height: 4px;
+
+				background-color: rgba(136, 135, 135, 1);
+			}
+		}
+		&-item{
+			display: flex;
+			
+			width: 120%;
+			&>div{
+				min-width: calc(100% / 5);
+				border-bottom: solid 1px var(--color-border);
+    background-color: var(--color-component-background);
+	padding: 4px 8px;
+			}
+		}
+		&-title{
+			display: flex;
+			width: 120%;
+			&>div{
+				min-width: calc(100% / 5);
+				position: sticky;
+    			top: 0;
+  				  background-color: var(--color-border);
+	padding: 4px 8px;
+		
+			}
+
+		}
+	}
+
 }
 </style>
