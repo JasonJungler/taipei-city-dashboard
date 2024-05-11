@@ -8,6 +8,7 @@ import { useContentStore } from "../../store/contentStore";
 import TableHeader from "../../components/utilities/forms/TableHeader.vue";
 import ComponentTag from "../../components/utilities/miscellaneous/ComponentTag.vue";
 import AdminComponentSettings from "../../components/dialogs/admin/AdminComponentSettings.vue";
+import AdminDeleteComponent from "../../components/dialogs/admin/AdminDeleteComponent.vue";
 import AdminCreator from "../../components/dialogs/admin/AdminCreator.vue";
 
 
@@ -89,6 +90,11 @@ function handleNewPage(page) {
 function handleOpenSettings(component) {
 	adminStore.getComponentData(component);
 	dialogStore.showDialog("adminComponentSettings");
+}
+
+function handleDeleteComponent(component) {
+  adminStore.currentComponent =  JSON.parse(JSON.stringify(component));
+	dialogStore.showDialog("adminDeleteComponent");
 }
 
 function handleOpenCreator() {
@@ -207,6 +213,9 @@ onMounted(() => {
             <button @click="handleOpenSettings(component)">
               <span>settings</span>
             </button>
+            <button @click="handleDeleteComponent(component)">
+              <span>delete</span>
+            </button>
           </td>
           <td>{{ component.id }}</td>
           <td>{{ component.index }}</td>
@@ -322,6 +331,7 @@ onMounted(() => {
       </div>
     </div>
     <AdminComponentSettings :search-params="searchParams" />
+    <AdminDeleteComponent />
     <AdminCreator :search-params="searchParams" />
 
   </div>

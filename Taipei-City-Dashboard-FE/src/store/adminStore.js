@@ -240,6 +240,16 @@ export const useAdminStore = defineStore("admin", {
 			dialogStore.showNotification("success", "組件更新成功");
 			this.getPublicComponents(params);
 		},
+		// 4. Delete a public component
+		async deleteComponent(params) {
+			const dialogStore = useDialogStore();
+			const componentIndex = this.currentComponent.id;
+			await http.delete(`/component/${componentIndex}`);
+
+			dialogStore.showNotification("success", "組件刪除成功");
+			this.getPublicComponents(params);
+		},
+
 
 		/* Issue */
 		// 1. Get all issues

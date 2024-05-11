@@ -98,7 +98,7 @@ function toggleFavorite(id) {
       "
       @delete="
         (id) => {
-          contentStore.deleteComponent(id);
+          contentStore.deleteDashboardComponent(id);
         }
       "
     />

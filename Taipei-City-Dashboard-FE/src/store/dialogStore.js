@@ -15,6 +15,7 @@ export const useDialogStore = defineStore("dialog", {
 		dialogs: {
 			// Admin Dialogs: /components/dialogs/admin
 			adminComponentSettings: false,
+			adminDeleteComponent: false,
 			adminAddEditDashboards: false,
 			adminEditIssue: false,
 			adminAddComponent: false,
