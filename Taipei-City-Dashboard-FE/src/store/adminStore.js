@@ -103,12 +103,14 @@ export const useAdminStore = defineStore("admin", {
 			});
 			this.components = response.data.data;
 			this.componentResults = response.data.results;
+			
 			this.setLoading(false);
 		},
 		// 2. Get component chart / history data and append to component config
 		async getComponentData(component) {
 			this.currentComponent = JSON.parse(JSON.stringify(component));
 
+			console.log(this.currentComponent);
 			// 2.1 Get component chart data
 			const response = await http.get(
 				`/component/${component.id}/chart`,

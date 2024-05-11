@@ -9,6 +9,7 @@ import TableHeader from "../../components/utilities/forms/TableHeader.vue";
 import ComponentTag from "../../components/utilities/miscellaneous/ComponentTag.vue";
 import AdminComponentSettings from "../../components/dialogs/admin/AdminComponentSettings.vue";
 import AdminDeleteComponent from "../../components/dialogs/admin/AdminDeleteComponent.vue";
+import AdminCreator from "../../components/dialogs/admin/AdminCreator.vue";
 
 
 import { chartTypes } from "../../assets/configs/apexcharts/chartTypes";
@@ -26,6 +27,9 @@ const searchParams = ref({
 	pagesize: 10,
 	pagenum: 1,
 });
+
+
+
 
 const pages = computed(() => {
 	// return an array of pages based on results no stored in admin store
@@ -93,6 +97,10 @@ function handleDeleteComponent(component) {
 	dialogStore.showDialog("adminDeleteComponent");
 }
 
+function handleOpenCreator() {
+	adminStore.getComponentData(adminStore.components[0]);
+	dialogStore.showDialog("adminCreator");
+}
 
 onMounted(() => {
 	adminStore.getPublicComponents(searchParams.value);
@@ -128,6 +136,7 @@ onMounted(() => {
       <button @click="handleNewQuery">
         搜尋
       </button>
+	  <button class="creatcomponent" @click="handleOpenCreator()">建立組件</button>
     </div>
     <!-- 2. The main table displaying all public components -->
     <table class="admineditcomponent-table">
@@ -323,6 +332,8 @@ onMounted(() => {
     </div>
     <AdminComponentSettings :search-params="searchParams" />
     <AdminDeleteComponent />
+    <AdminCreator :search-params="searchParams" />
+
   </div>
 </template>
 
@@ -339,7 +350,8 @@ onMounted(() => {
 		display: flex;
 		column-gap: 0.5rem;
 		margin-bottom: var(--font-ms);
-
+		
+		max-width: calc(100% - 40px);
 		div {
 			position: relative;
 
@@ -491,5 +503,8 @@ onMounted(() => {
 			}
 		}
 	}
+}
+.creatcomponent{
+	margin: 0 7px 0 auto !important;
 }
 </style>
