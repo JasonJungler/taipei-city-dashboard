@@ -3,7 +3,6 @@ package models
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 )
@@ -255,15 +254,15 @@ func GetThreeDimensionalData(query *string, timeFrom string, timeTo string) (cha
 		}
 	}
 
-	// 5. Populate categories slice from categoryMap
-	for category := range categoryMap {
-		categories = append(categories, category)
+	// 5. Populate categories slice from the original x-axis order
+	for _, data := range chartData {
+		if _, ok := categoryMap[data.Xaxis]; ok {
+			categories = append(categories, data.Xaxis)
+			delete(categoryMap, data.Xaxis)
+		}
 	}
 
-	// 6. Sort categories
-	sort.Strings(categories)
-
-	// 7. Fill chartDataOutput with data
+	// 6. Fill chartDataOutput with data
 	for _, data := range chartData {
 		yIndex := yAxisMap[data.Yaxis]
 		categoryIndex := findIndex(categories, data.Xaxis)
