@@ -1,7 +1,7 @@
 <!-- Developed by Taipei Urban Intelligence Center 2023-2024-->
 
 <script setup>
-import { ref, defineProps ,onMounted } from "vue";
+import { ref, defineProps , watch,onBeforeMount } from "vue";
 import { storeToRefs } from "pinia";
 import { DashboardComponent } from "city-dashboard-component";
 import { useDialogStore } from "../../../store/dialogStore";
@@ -42,6 +42,8 @@ function handleClose() {
 function handleSelectOthers(input){
 	currentSettings.value = input;
 }
+
+
 
 const newInputStorage = ref({
     "id": null,
@@ -84,8 +86,25 @@ const newInputStorage = ref({
 	"query_chart": ""
 })
 
-onMounted(()=>{
-})
+function handlePushSqlData(){
+	//POst data in here
+	console.log(123)
+	
+	//拿到資料後去更新newInputStorage的chart欄位就可以
+}
+
+const alllist = ref([])
+
+ watch(
+      () => dialogStore.dialogs.adminCreator, 
+      (newValue, oldValue) => {
+        if (newValue === true) {
+		// 去拉取全部資料表的名字
+		alllist.value = []
+        }
+      }
+    );
+
 
 </script>
 
@@ -174,7 +193,7 @@ onMounted(()=>{
                 v-model="newInputStorage.query_chart"
               />
 			  <div class="adminCreator-runsql">
-				<button >匯入資料</button>
+				<button @click="handlePushSqlData">匯入資料</button>
 			  </div>
 		</div>
 
