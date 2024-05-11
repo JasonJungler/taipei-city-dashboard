@@ -3,6 +3,7 @@ package models
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 )
@@ -237,44 +238,55 @@ func GetThreeDimensionalData(query *string, timeFrom string, timeTo string) (cha
 	if err != nil {
 		return chartDataOutput, categories, err
 	}
-	if len(chartData) == 0 {
-		return chartDataOutput, categories, err
+
+	// 3. Create maps to store unique categories and yAxis values
+	categoryMap := make(map[string]bool)
+	yAxisMap := make(map[string]int)
+
+	// 4. Convert the data to the format required by the front-end
+	for _, data := range chartData {
+		// Add unique categories to categoryMap
+		categoryMap[data.Xaxis] = true
+
+		// Add unique yAxis values to yAxisMap and initialize corresponding index in chartDataOutput
+		if _, ok := yAxisMap[data.Yaxis]; !ok {
+			yAxisMap[data.Yaxis] = len(chartDataOutput)
+			chartDataOutput = append(chartDataOutput, ThreeDimensionalDataOutput{Name: data.Yaxis, Icon: data.Icon, Data: make([]int, 0)})
+		}
 	}
 
-	// 3. Convert the data to the format required by the front-end
+	// 5. Populate categories slice from categoryMap
+	for category := range categoryMap {
+		categories = append(categories, category)
+	}
+
+	// 6. Sort categories
+	sort.Strings(categories)
+
+	// 7. Fill chartDataOutput with data
 	for _, data := range chartData {
-		// Get unique categories from xAxis
-		var foundX bool
-		for _, category := range categories {
-			if category == data.Xaxis {
-				foundX = true
-				break
+		yIndex := yAxisMap[data.Yaxis]
+		categoryIndex := findIndex(categories, data.Xaxis)
+		if categoryIndex != -1 {
+			// Ensure chartDataOutput has enough elements to accommodate categoryIndex
+			for len(chartDataOutput[yIndex].Data) <= categoryIndex {
+				chartDataOutput[yIndex].Data = append(chartDataOutput[yIndex].Data, 0)
 			}
-		}
-
-		// If a unique xAxis is found, append it to the existing list of categories
-		if !foundX {
-			categories = append(categories, data.Xaxis)
-		}
-
-		// Group data together by yAxis
-		var foundY bool
-		for i, output := range chartDataOutput {
-			if output.Name == data.Yaxis {
-				// Append the data to the output
-				chartDataOutput[i].Data = append(output.Data, data.Data)
-				foundY = true
-				break
-			}
-		}
-
-		// If a unique yAxis is found, create a new entry in the output
-		if !foundY {
-			chartDataOutput = append(chartDataOutput, ThreeDimensionalDataOutput{Name: data.Yaxis, Icon: data.Icon, Data: []int{data.Data}})
+			chartDataOutput[yIndex].Data[categoryIndex] = data.Data
 		}
 	}
 
 	return chartDataOutput, categories, nil
+}
+
+// Function to find index of element in slice
+func findIndex(slice []string, val string) int {
+	for i, item := range slice {
+		if item == val {
+			return i
+		}
+	}
+	return -1
 }
 
 func GetTimeSeriesData(query *string, timeFrom string, timeTo string) (chartDataOutput []TimeSeriesDataOutput, err error) {
