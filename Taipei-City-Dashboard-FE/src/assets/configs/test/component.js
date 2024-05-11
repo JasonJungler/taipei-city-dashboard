@@ -39,8 +39,7 @@ export const testComponent = {
 	chart: {
 		index: "garbage_truck",
 		color: ["#E6DF44", "#F4633C", "#D63940", "#9C2A4B"],
-		types: ["ColumnChart"],
-	
+		types: ["ColumnChart", "DistrictChart", "RadarChart"],
 		unit: "處",
 	},
 	data: {
@@ -62,7 +61,7 @@ export const testComponent = {
 		links: [
 			"https://data.taipei/dataset/detail?id=6bb3304b-4f46-4bb0-8cd1-60c66dcd1cae",
 		],
-		contributors: ["John Doe", "Jane Smith"],
+		contributors: ["管誰import啥"],
 		query_type: "three_d",
 		query_chart: `
         SELECT * FROM (
