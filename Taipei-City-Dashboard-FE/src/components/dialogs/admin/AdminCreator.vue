@@ -110,12 +110,13 @@ async function handlePushSqlData() {
 
     // Prepare request body
     const requestBody = {
-        queryType:  JSON.stringify(JSON.parse(JSON.stringify(queryType))) ,
-        queryString: JSON.stringify(JSON.parse(JSON.stringify(trimmedQuery))) 
+        queryType:  queryType,
+        queryString: trimmedQuery
     };
 
     try {
         // Make HTTP request
+		console.log(requestBody)
         const response = await http.post(
             "/helper/query", 
             JSON.stringify(JSON.parse(JSON.stringify(requestBody)))
