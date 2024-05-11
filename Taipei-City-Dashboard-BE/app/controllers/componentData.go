@@ -2,7 +2,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
@@ -144,7 +143,6 @@ func QueryChartData(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
 			return
 		}
-		log.Println(chartData)
 		c.JSON(http.StatusOK, gin.H{"status": "success", "data": chartData})
 
 	} else if request.QueryType == "three_d" || request.QueryType == "percent" {
@@ -153,7 +151,6 @@ func QueryChartData(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
 			return
 		}
-		log.Println(chartData)
 		c.JSON(http.StatusOK, gin.H{"status": "success", "data": chartData, "categories": categories})
 
 	} else if request.QueryType == "time" {
@@ -162,7 +159,6 @@ func QueryChartData(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
 			return
 		}
-		log.Println(chartData)
 		c.JSON(http.StatusOK, gin.H{"status": "success", "data": chartData})
 	} else if request.QueryType == "map_legend" {
 		chartData, err := models.GetMapLegendData(&request.QueryString, timeFrom, timeTo)
@@ -170,7 +166,6 @@ func QueryChartData(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
 			return
 		}
-		log.Println(chartData)
 		c.JSON(http.StatusOK, gin.H{"status": "success", "data": chartData})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid queryType"})
@@ -186,6 +181,5 @@ func ListTablesInComponentsHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
 		return
 	}
-	log.Println(tables)
 	c.JSON(http.StatusOK, gin.H{"status": "success", "tables": tables})
 }
