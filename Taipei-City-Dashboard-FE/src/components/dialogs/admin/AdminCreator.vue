@@ -95,6 +95,10 @@ function trimQuery(query) {
     return query;
 }
 
+function handleGetCsv(){
+	console.log(newInputStorage.value.index)
+}
+
 async function handlePushSqlData() {
     // Validate query chart and query type
     const queryType = newInputStorage.value.query_type,
@@ -146,6 +150,7 @@ watch(
       }
     }
 );
+
 
 
 </script>
@@ -224,7 +229,7 @@ watch(
                 :value="newInputStorage.id"
                 disabled
               >
-			  <select v-model="newInputStorage.index">
+			  <select v-model="newInputStorage.index" @change="handleGetCsv()">
 				<option :value="item" v-for="item in alllist" :key="item">
 				{{item}}
 				</option>
