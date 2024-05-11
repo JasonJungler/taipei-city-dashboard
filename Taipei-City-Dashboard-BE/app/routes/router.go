@@ -26,7 +26,6 @@ func ConfigureRoutes() {
 	configureComponentRoutes()
 	configureDashboardRoutes()
 	configureIssueRoutes()
-	configureSanatizeRoutes()
 }
 
 func configureAuthRoutes() {
@@ -64,20 +63,22 @@ func configureComponentRoutes() {
 	componentRoutes.Use(middleware.LimitTotalRequests(global.ComponentLimitTotalRequestsTimes, global.TokenExpirationDuration))
 	{
 		componentRoutes.GET("/", controllers.GetAllComponents)
-		componentRoutes.
-			GET("/:id", controllers.GetComponentByID)
-		componentRoutes.
-			GET("/:id/chart", controllers.GetComponentChartData)
+		componentRoutes.GET("/:id", controllers.GetComponentByID)
+		componentRoutes.GET("/:id/chart", controllers.GetComponentChartData)
 		componentRoutes.GET("/:id/history", controllers.GetComponentHistoryData)
 	}
 	componentRoutes.Use(middleware.IsSysAdm())
 	{
 		componentRoutes.
+			POST("/", controllers.CreateComponent).
 			PATCH("/:id", controllers.UpdateComponent).
 			DELETE("/:id", controllers.DeleteComponent)
 		componentRoutes.
+			POST("/chart", controllers.CreateComponentChartConfig).
 			PATCH("/:id/chart", controllers.UpdateComponentChartConfig)
-		componentRoutes.PATCH("/:id/map", controllers.UpdateComponentMapConfig)
+		componentRoutes.
+			POST("/map", controllers.CreateComponentMapConfig).
+			PATCH("/:id/map", controllers.UpdateComponentMapConfig)
 	}
 }
 
@@ -121,14 +122,4 @@ func configureIssueRoutes() {
 		issueRoutes.
 			PATCH("/:id", controllers.UpdateIssueByID)
 	}
-}
-
-func configureSanatizeRoutes() {
-	sanatizeRoutes := RouterGroup.Group("/sanatize")
-	sanatizeRoutes.Use(middleware.IsSysAdm())
-	{
-		sanatizeRoutes.
-			POST("/csv-to-utf-eight", controllers.HandleConvert)
-	}
-
 }

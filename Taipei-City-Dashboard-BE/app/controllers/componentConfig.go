@@ -2,6 +2,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -218,4 +219,122 @@ func DeleteComponent(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "success", "chart_deleted": deleteChartStatus, "map_deleted": deleteMapStatus})
+}
+
+/*
+CreateComponent creates a new component in the database.
+POST /api/v1/component
+*/
+func CreateComponent(c *gin.Context) {
+	var component models.Component
+
+	// 1. Bind the request body to the component and make sure it's valid
+	err := c.ShouldBindJSON(&component)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+	// !TODO: validate SQL for safety
+	// err := c.ShouldBindJSON(&component)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error()})
+	// 	return
+	// }
+
+	// 2. Create the component
+	createdComponent, err := models.CreateComponent(
+		component.Index, // must be valid dataset
+		component.Name,
+		component.HistoryConfig,
+		component.MapConfigIDs,
+		component.MapConfig,
+		component.ChartConfig,
+		component.MapFilter,
+		component.TimeFrom,
+		component.TimeTo,
+		component.UpdateFreq,
+		component.UpdateFreqUnit,
+		component.Source,
+		component.ShortDesc,
+		component.LongDesc,
+		component.UseCase,
+		component.Links,
+		component.Contributors,
+		component.QueryType,
+		component.QueryChart,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+
+	// 3. Return the created component
+	c.JSON(http.StatusCreated, gin.H{"status": "success", "data": createdComponent})
+}
+
+/*
+CreateComponentMapConfig creates a new map config for a component.
+POST /api/v1/component/:componentIndex/map
+*/
+func CreateComponentMapConfig(c *gin.Context) {
+
+	var componentMap models.ComponentMap
+
+	// 1. Bind the request body to the component map and make sure it's valid
+	err := c.ShouldBindJSON(&componentMap)
+	log.Println("1")
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+	log.Println("2")
+
+	// 3. Create the map config
+	mapConfig, err := models.CreateComponentMapConfig(
+		componentMap.Index,
+		componentMap.Title,
+		componentMap.Type,
+		componentMap.Source,
+		componentMap.Size,
+		componentMap.Icon,
+		componentMap.Paint,
+		componentMap.Property)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+	log.Println("3")
+
+	// 4. Return the created map config
+	c.JSON(http.StatusCreated, gin.H{"status": "success", "data": mapConfig})
+}
+
+/*
+CreateComponentChartConfig creates a new chart config for a component.
+POST /api/v1/component/:componentIndex/chart
+*/
+func CreateComponentChartConfig(c *gin.Context) {
+
+	var componentChart models.ComponentChart
+
+	// 2. Bind the request body to the input struct
+	if err := c.ShouldBindJSON(&componentChart); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+
+	// 3. Create the chart config
+	chartConfig, err := models.CreateComponentChartConfig(
+		componentChart.Index,
+		componentChart.Color,
+		componentChart.Types,
+		componentChart.Unit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+
+	// 4. Return the created chart config
+	c.JSON(http.StatusCreated, gin.H{"status": "success", "data": chartConfig})
 }

@@ -18,7 +18,7 @@ type Component struct {
 	Index          string          `json:"index" gorm:"column:index;type:varchar;unique;not null"     `
 	Name           string          `json:"name" gorm:"column:name;type:varchar;not null"`
 	HistoryConfig  json.RawMessage `json:"history_config" gorm:"column:history_config;type:json"`
-	MapConfigIDs   pq.Int64Array   `json:"-" gorm:"column:map_config_ids;type:integer[]"`
+	MapConfigIDs   pq.Int64Array   `json:"map_config_ids" gorm:"column:map_config_ids;type:integer[]"`
 	MapConfig      json.RawMessage `json:"map_config" gorm:"type:json"`
 	ChartConfig    json.RawMessage `json:"chart_config" gorm:"type:json"`
 	MapFilter      json.RawMessage `json:"map_filter" gorm:"column:map_filter;type:json"`
@@ -35,7 +35,7 @@ type Component struct {
 	CreatedAt      time.Time       `json:"-" gorm:"column:created_at;type:timestamp with time zone;not null"`
 	UpdatedAt      time.Time       `json:"updated_at" gorm:"column:updated_at;type:timestamp with time zone;not null"`
 	QueryType      string          `json:"query_type" gorm:"column:query_type;type:varchar"`
-	QueryChart     string          `json:"-" gorm:"column:query_chart;type:text"`
+	QueryChart     string          `json:"query_chart" gorm:"column:query_chart;type:text"`
 	QueryHistory   string          `json:"-" gorm:"column:query_history;type:text"`
 }
 
@@ -218,4 +218,117 @@ func DeleteComponent(id int, index string, mapConfigIDs pq.Int64Array) (deleteCh
 	}
 
 	return true, true, nil
+}
+
+// CreateComponent creates a new component in the database.
+func CreateComponent(
+	index string,
+	name string,
+	historyConfig json.RawMessage,
+	mapConfigIds pq.Int64Array,
+	mapConfig json.RawMessage,
+	chartConfig json.RawMessage,
+	mapFilter json.RawMessage,
+	timeFrom string,
+	timeTo string,
+	updateFreq *int64,
+	updateFreqUnit string,
+	source string,
+	shortDesc string,
+	longDesc string,
+	useCase string,
+	links pq.StringArray,
+	contributors pq.StringArray,
+	queryType string,
+	queryChart string,
+) (createdComponent Component, err error) {
+	// Create a new component
+	component := Component{
+		Index:          index,
+		Name:           name,
+		HistoryConfig:  historyConfig,
+		MapConfigIDs:   mapConfigIds,
+		MapConfig:      mapConfig,
+		ChartConfig:    chartConfig,
+		MapFilter:      mapFilter,
+		TimeFrom:       timeFrom,
+		TimeTo:         timeTo,
+		UpdateFreq:     updateFreq,
+		UpdateFreqUnit: updateFreqUnit,
+		Source:         source,
+		ShortDesc:      shortDesc,
+		LongDesc:       longDesc,
+		UseCase:        useCase,
+		Links:          links,
+		Contributors:   contributors,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+		QueryType:      queryType,
+		QueryChart:     queryChart,
+	}
+
+	// Create the component and chart config in the database
+	err = DBManager.Transaction(func(tx *gorm.DB) error {
+		// Create the component
+		if err := tx.Create(&component).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return createdComponent, err
+	}
+
+	createdComponent = component
+	return createdComponent, nil
+}
+
+// CreateComponentMapConfig creates a new map config for a component.
+func CreateComponentMapConfig(componentIndex string, title string, mapType string, source string, size *string, icon *string, paint *json.RawMessage, property *json.RawMessage) (mapConfig ComponentMap, err error) {
+	// Create a new map config
+	// !TODO: apply default values
+	mapConfig = ComponentMap{
+		Index:    componentIndex,
+		Title:    title,
+		Type:     mapType,
+		Source:   source,
+		Size:     size,
+		Icon:     icon,
+		Paint:    paint,
+		Property: property,
+	}
+
+	// Save the new map config in the database
+	err = DBManager.Create(&mapConfig).Error
+	if err != nil {
+		return mapConfig, err
+	}
+
+	// Update the component's MapConfigIDs field with the new map config ID
+	err = DBManager.Model(&Component{}).Where("index = ?", componentIndex).UpdateColumn("map_config_ids", gorm.Expr("array_append(map_config_ids, ?)", mapConfig.ID)).Error
+	if err != nil {
+		return mapConfig, err
+	}
+
+	return mapConfig, nil
+}
+
+// CreateComponentChartConfig creates a new chart config for a component.
+func CreateComponentChartConfig(componentIndex string, color pq.StringArray, types pq.StringArray, unit string) (chartConfig ComponentChart, err error) {
+	// Create a new chart config
+	// !TODO: apply default values
+	chartConfig = ComponentChart{
+		Index: componentIndex,
+		Color: color,
+		Types: types,
+		Unit:  unit,
+	}
+	// Save the new chart config in the database
+	err = DBManager.Create(&chartConfig).Error
+	if err != nil {
+		return chartConfig, err
+	}
+
+	return chartConfig, nil
 }

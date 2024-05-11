@@ -23,6 +23,10 @@ export const useAdminStore = defineStore("admin", {
 		components: [],
 		componentResults: 0,
 		currentComponent: null,
+		// Create Component 
+		newComponent: {},
+		newComponentMap: {},
+		newComponentChart: {},
 		// Edit Issue (for /admin/issue)
 		issues: [],
 		issueResults: 0,
@@ -64,7 +68,6 @@ export const useAdminStore = defineStore("admin", {
 
 			this.currentDashboard.components =
 				this.currentDashboard.components.map((el) => el.id);
-
 			const dashboard = JSON.parse(JSON.stringify(this.currentDashboard));
 
 			await http.post(`/dashboard/public`, dashboard);
@@ -247,8 +250,21 @@ export const useAdminStore = defineStore("admin", {
 			dialogStore.showNotification("success", "組件刪除成功");
 			this.getPublicComponents(params);
 		},
-
-
+		// 5. Create a public component 
+		async createComponent(params) {
+			const dialogStore = useDialogStore();
+			// Create map component
+			const newComponentMap = await http.post(`/component/map`, this.newComponentMap);
+			
+			// Create chart component
+			const newComponentChart = await http.post(`/component/chart`, this.newComponentChart);
+			this.newComponent.map_config_ids = [newComponentMap.index];
+			
+			// Create component
+			await http.post(`/component/`, this.newComponent);
+			dialogStore.showNotification("success", "組件建立成功");
+			this.getPublicComponents(params);
+		},
 		/* Issue */
 		// 1. Get all issues
 		async getIssues(params) {
