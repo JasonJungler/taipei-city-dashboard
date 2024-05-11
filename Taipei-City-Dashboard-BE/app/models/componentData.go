@@ -367,7 +367,7 @@ func ListTablesInComponents() ([]string, error) {
 	var tables []string
 
 	// Query the information schema to fetch table names
-	rows, err := DBManager.Raw("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE 'components_%'").Rows()
+	rows, err := DBManager.Raw("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'").Rows()
 	if err != nil {
 		return nil, err
 	}
