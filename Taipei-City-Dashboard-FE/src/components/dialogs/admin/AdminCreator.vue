@@ -6,6 +6,7 @@ import { storeToRefs } from "pinia";
 import { DashboardComponent } from "city-dashboard-component";
 import { useDialogStore } from "../../../store/dialogStore";
 import { useAdminStore } from "../../../store/adminStore";
+import http from "../../../router/axios";
 
 import DialogContainer from "../DialogContainer.vue";
 import InputTags from "../../utilities/forms/InputTags.vue";
@@ -42,7 +43,6 @@ function handleClose() {
 function handleSelectOthers(input){
 	currentSettings.value = input;
 }
-
 
 
 const newInputStorage = ref({
@@ -83,27 +83,71 @@ const newInputStorage = ref({
     "updated_at": "",
     "query_type": "",
     "chart_data": [],
-	"query_chart": ""
+	  "query_chart": ""
 })
 
-function handlePushSqlData(){
-	//POst data in here
-	console.log(123)
-	
-	//拿到資料後去更新newInputStorage的chart欄位就可以
+// Trim the input query on the frontend side
+function trimQuery(query) {
+    // Remove leading and trailing whitespace
+    query = query.trim();
+    // Replace multiple consecutive whitespace characters with a single space
+    query = query.replace(/\s+/g, ' ');
+    return query;
+}
+
+async function handlePushSqlData() {
+    // Validate query chart and query type
+    const queryType = newInputStorage.value.query_type,
+          queryChart = newInputStorage.value.query_chart;
+
+    if (!queryType || !queryChart) {
+        console.error("Query chart and query type cannot be empty");
+        return;
+    }
+
+    // Trim query chart
+    const trimmedQuery = trimQuery(queryChart);
+
+    // Prepare request body
+    const requestBody = {
+        queryType:  JSON.stringify(JSON.parse(JSON.stringify(queryType))) ,
+        queryString: JSON.stringify(JSON.parse(JSON.stringify(trimmedQuery))) 
+    };
+
+    try {
+        // Make HTTP request
+        const response = await http.post(
+            "/helper/query", 
+            JSON.stringify(JSON.parse(JSON.stringify(requestBody)))
+        );
+        console.log(response);
+        // Show notification on success
+        dialogStore.showNotification("success", response.data);
+        
+        // Update newInputStorage chart field if necessary
+        // (Assuming there's a method to update the chart field)
+        newInputStorage.chart_data = response.data;
+    } catch (error) {
+        // Handle errors
+        console.error("Error:", error);
+        dialogStore.showNotification("error", "An error occurred while processing the request.");
+    }
 }
 
 const alllist = ref([])
 
- watch(
-      () => dialogStore.dialogs.adminCreator, 
-      (newValue, oldValue) => {
-        if (newValue === true) {
-		// 去拉取全部資料表的名字
-		alllist.value = []
-        }
+watch(
+    () => dialogStore.dialogs.adminCreator, 
+    async (newValue, oldValue) => {
+      if (newValue === true) {
+        // 去拉取全部資料表的名字
+        const response = await http.get("/helper/list-tables");
+        console.log("response: ", response);
+        alllist.value = response.tables;
+        console.log("all list: ", alllist);
       }
-    );
+    }
+);
 
 
 </script>
@@ -162,9 +206,9 @@ const alllist = ref([])
       <div class="adminCreator-content">
         <div class="adminCreator-settings">
 		<div v-if="currentSettings === 'sql'" class="adminCreator-settings-items">
-			<label>組件名稱* ({{
-              newInputStorage.name.length
-            }}/10)</label>
+			      <label>
+              組件名稱* ({{newInputStorage.name.length}}/10)
+            </label>
             <input
               v-model="newInputStorage.name"
               type="text"
@@ -188,12 +232,29 @@ const alllist = ref([])
                 disabled
               >
             </div>
-			<label>sql設定</label>
-              <textarea
-                v-model="newInputStorage.query_chart"
-              />
+            <label>圖表資料型態 Query Type</label>
+            <select v-model="newInputStorage.query_type">
+              <option value="two_d">
+                二維資料
+              </option>
+              <option value="three_d">
+                三維資料
+              </option>
+              <option value="time">
+                時間序列資料
+              </option>
+              <option value="percent">
+                百分比資料
+              </option>
+              <option value="map_legend">
+                圖例資料
+              </option>
+            </select>
+			      <label>sql設定</label>
+            <textarea v-model="newInputStorage.query_chart"/>
 			  <div class="adminCreator-runsql">
-				<button @click="handlePushSqlData">匯入資料</button>
+        
+				<button @click="handlePushSqlData()">匯入資料</button>
 			  </div>
 		</div>
 
@@ -343,27 +404,6 @@ const alllist = ref([])
             v-else-if="currentSettings === 'chart'"
             class="adminCreator-settings-items"
           >
-            <label>圖表資料型態</label>
-            <select
-              :value="newInputStorage.query_type"
-              disabled
-            >
-              <option value="two_d">
-                二維資料
-              </option>
-              <option value="three_d">
-                三維資料
-              </option>
-              <option value="time">
-                時間序列資料
-              </option>
-              <option value="percent">
-                百分比資料
-              </option>
-              <option value="map_legend">
-                圖例資料
-              </option>
-            </select>
             <label>資料單位*</label>
             <input
               v-model="newInputStorage.chart_config.unit"

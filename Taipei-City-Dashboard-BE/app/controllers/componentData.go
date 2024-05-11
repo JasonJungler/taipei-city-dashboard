@@ -2,6 +2,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -10,6 +11,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+type QueryExperimentRequest struct {
+	QueryType   string `json:"queryType"`
+	QueryString string `json:"queryString"`
+}
 
 /*
 GetComponentChartData retrieves the chart data for a component.
@@ -110,4 +116,76 @@ func GetComponentHistoryData(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "success", "data": chartData})
+}
+
+// Define the route handler for executing the query experiment
+func QueryChartData(c *gin.Context) {
+	// Parse the JSON request body
+	var request QueryExperimentRequest
+	err := c.ShouldBindJSON(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate the queryType and queryString
+	if request.QueryType == "" || request.QueryString == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "queryType and queryString are required"})
+		return
+	}
+
+	// Execute the query experiment
+	timeFrom, timeTo := util.GetTime(c)
+
+	// 3. Get and parse the chart data based on chart data type
+	if request.QueryType == "two_d" {
+		chartData, err := models.GetTwoDimensionalData(&request.QueryString, timeFrom, timeTo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
+			return
+		}
+		log.Println(chartData)
+		c.JSON(http.StatusOK, gin.H{"status": "success", "data": chartData})
+
+	} else if request.QueryType == "three_d" || request.QueryType == "percent" {
+		chartData, categories, err := models.GetThreeDimensionalData(&request.QueryString, timeFrom, timeTo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
+			return
+		}
+		log.Println(chartData)
+		c.JSON(http.StatusOK, gin.H{"status": "success", "data": chartData, "categories": categories})
+
+	} else if request.QueryType == "time" {
+		chartData, err := models.GetTimeSeriesData(&request.QueryString, timeFrom, timeTo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
+			return
+		}
+		log.Println(chartData)
+		c.JSON(http.StatusOK, gin.H{"status": "success", "data": chartData})
+	} else if request.QueryType == "map_legend" {
+		chartData, err := models.GetMapLegendData(&request.QueryString, timeFrom, timeTo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
+			return
+		}
+		log.Println(chartData)
+		c.JSON(http.StatusOK, gin.H{"status": "success", "data": chartData})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid queryType"})
+		return
+	}
+}
+
+// Define the route handler for listing tables in the components database
+func ListTablesInComponentsHandler(c *gin.Context) {
+	// Call the function to list tables in components
+	tables, err := models.ListTablesInComponents()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+	log.Println(tables)
+	c.JSON(http.StatusOK, gin.H{"status": "success", "tables": tables})
 }

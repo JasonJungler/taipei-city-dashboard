@@ -341,3 +341,51 @@ func GetMapLegendData(query *string, timeFrom string, timeTo string) (chartData 
 
 	return chartData, nil
 }
+
+// QueryExperiment is the model for executing a custom query and validating the output.
+type QueryExperiment struct {
+	Query string `json:"query"`
+}
+
+// Bypass dangerous keywords to avoid SQL injection
+func QueryValidation(query string) error {
+	// List of dangerous keywords
+	dangerousKeywords := []string{"DROP", "DELETE", "TRUNCATE", "INSERT", "UPDATE", "ALTER"}
+
+	// Check if the query contains any dangerous keywords
+	for _, keyword := range dangerousKeywords {
+		if strings.Contains(strings.ToUpper(query), keyword) {
+			return fmt.Errorf("query contains invalid keyword: %s", keyword)
+		}
+	}
+
+	return nil
+}
+
+// ListTablesInComponents lists all tables in the components database using the DBManager connection.
+func ListTablesInComponents() ([]string, error) {
+	var tables []string
+
+	// Query the information schema to fetch table names
+	rows, err := DBManager.Raw("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE 'components_%'").Rows()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate over the rows and extract table names
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err != nil {
+			return nil, err
+		}
+		tables = append(tables, tableName)
+	}
+
+	// Check for any errors during row iteration
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return tables, nil
+}

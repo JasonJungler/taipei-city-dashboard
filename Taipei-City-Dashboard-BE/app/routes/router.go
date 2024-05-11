@@ -26,6 +26,7 @@ func ConfigureRoutes() {
 	configureComponentRoutes()
 	configureDashboardRoutes()
 	configureIssueRoutes()
+	configureQueryRoutes()
 }
 
 func configureAuthRoutes() {
@@ -121,5 +122,16 @@ func configureIssueRoutes() {
 			GET("/", controllers.GetAllIssues)
 		issueRoutes.
 			PATCH("/:id", controllers.UpdateIssueByID)
+	}
+}
+
+func configureQueryRoutes() {
+	queryRoutes := RouterGroup.Group("/helper")
+	queryRoutes.Use(middleware.LimitAPIRequests(global.DashboardLimitAPIRequestsTimes, global.LimitRequestsDuration))
+	queryRoutes.Use(middleware.LimitTotalRequests(global.DashboardLimitTotalRequestsTimes, global.LimitRequestsDuration))
+	queryRoutes.Use(middleware.IsSysAdm())
+	{
+		queryRoutes.POST("/query", controllers.QueryChartData)
+		queryRoutes.GET("/list-tables", controllers.ListTablesInComponentsHandler)
 	}
 }
