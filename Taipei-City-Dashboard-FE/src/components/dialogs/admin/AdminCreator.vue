@@ -31,6 +31,8 @@ const tempInputStorage = ref({
 	historyColor: "#000000",
 });
 
+const alllist = ref([])
+const csvStore = ref([])
 
 function handleConfirm() {
 	handleClose();
@@ -98,9 +100,7 @@ function trimQuery(query) {
 async function handleGetCsv(){
   const datasetIndex = newInputStorage.value.index;
   const csvData = await http.get(`/helper/data-csv/${datasetIndex}`);
-	console.log("csv: ", csvData);
-  console.log("data: ", csvData.data);
-
+  csvStore.value = csvData.data.data;
 }
 
 async function handlePushSqlData() {
@@ -143,7 +143,6 @@ async function handlePushSqlData() {
     }
 }
 
-const alllist = ref([])
 
 watch(
     () => dialogStore.dialogs.adminCreator, 
@@ -696,37 +695,15 @@ watch(
             />
           </div>
 		  <div v-else-if="currentSettings === 'sql'" class="adminCreator__preData">
-			<p v-if="newInputStorage.chart_data.length!=0">尚未匯入資料</p>
-			<div class="adminCreator__preData-box">
-				<div class="adminCreator__preData-title">
-					<div>test1</div>
-					<div>test2</div>
-					<div>test3</div>
-					<div>test4</div>
-					<div>test5</div>
-					<div>test5</div>
-
+			<p v-if="csvStore.length==0">尚未匯入資料</p>
+			<div class="adminCreator__preData-box" v-if="csvStore.length!=0">
+				<div class="adminCreator__preData-title" :style="`width:${Object.keys(csvStore[0]).length*40}%`">
+					<div v-for="item in Object.keys(csvStore[0])" :style="`width:${Math.floor(100/Object.keys(csvStore[0]).length)}%`">{{ item }}</div>
 				</div>
-				<div class="adminCreator__preData-item">
-					<div>test1</div>
-					<div>test2</div>
-					<div>test3</div>
-					<div>test4</div>
-					<div>test5</div>
-					<div>test5</div>
-			
-					   
-					  
+				<div class="adminCreator__preData-item" v-for="item in Object.keys(csvStore)" :style="`width:${Object.keys(csvStore[0]).length*40}%`">
+					<div v-for="item in csvStore[item]" :style="`width:${Math.floor(100/Object.keys(csvStore[0]).length)}%`">{{ item }}</div>
 				</div>
-				<div class="adminCreator__preData-item">
-					<div>test1</div>
-					<div>test2</div>
-					<div>test3</div>
-					<div>test4</div>
-					<div>test5</div>
-					<div>test5</div>
 				
-				</div>
 			</div>
 		</div>
           <div
@@ -908,7 +885,7 @@ watch(
 			display: block;
 			width: 100%;
 			height: 100%;
-			overflow-x: auto !important;
+			overflow: auto !important;
 			
 			&::-webkit-scrollbar {
 				width: 4px;
@@ -931,9 +908,7 @@ watch(
 		&-item{
 			display: flex;
 			
-			width: 120%;
 			&>div{
-				min-width: calc(100% / 5);
 				border-bottom: solid 1px var(--color-border);
     background-color: var(--color-component-background);
 	padding: 4px 8px;
@@ -943,7 +918,6 @@ watch(
 			display: flex;
 			width: 120%;
 			&>div{
-				min-width: calc(100% / 5);
 				position: sticky;
     			top: 0;
   				  background-color: var(--color-border);
