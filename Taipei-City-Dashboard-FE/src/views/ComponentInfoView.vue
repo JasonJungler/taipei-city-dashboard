@@ -43,6 +43,7 @@ function toggleFavorite(id) {
 }
 
 onMounted(() => {
+	console.log(dialogStore.moreInfoContent);
 	contentStore.getAllComponents(searchParams.value);
 });
 </script>

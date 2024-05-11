@@ -65,6 +65,7 @@ onMounted(() => {
     <button @click="handleNewQuery">
       搜尋
     </button>
+	
   </div>
   <!-- 1. If the components are loaded -->
   <div
@@ -171,7 +172,7 @@ onMounted(() => {
 		column-gap: 0.5rem;
 		margin-top: var(--font-m);
 		margin-left: var(--font-m);
-
+		margin-right: var(--font-m);
 		div {
 			position: relative;
 
@@ -242,4 +243,5 @@ onMounted(() => {
 		}
 	}
 }
+
 </style>
