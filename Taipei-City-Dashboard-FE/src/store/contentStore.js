@@ -415,7 +415,7 @@ export const useContentStore = defineStore("content", {
 			this.setDashboards();
 		},
 		// 4. Call this function to delete a component in a dashboard.
-		async deleteComponent(component_id) {
+		async deleteDashboardComponent(component_id) {
 			const dialogStore = useDialogStore();
 
 			const newComponents = this.currentDashboard.components
