@@ -33,6 +33,7 @@ const tempInputStorage = ref({
 const maindata = ref({
 	name: "",
 	index: "",
+	isUseMap: false,
 	alllist: [],
 	csvStore: [],
 	afterSql: [],
@@ -166,7 +167,8 @@ function handleTestNewComponents() {
 	adminStore.newComponent = JSON.parse(
 		JSON.stringify(newInputStorage.value.data)
 	);
-	adminStore.createComponent(props.searchParams.value);
+
+	adminStore.createComponent(props.searchParams.value,maindata.value.isUseMap);
 }
 
 watch(
@@ -318,6 +320,15 @@ watch(
 							:maxlength="50"
 							required
 						/>
+						
+						
+						<div  class="adminCreator-settings-checkbox">
+						<input type="checkbox" v-model="maindata.isUseMap">
+
+							<label>
+							載入地圖
+						</label>
+						</div>
 						<label
 							>組件詳述* ({{
 								newInputStorage.data.long_desc.length
@@ -649,7 +660,12 @@ watch(
 			grid-template-columns: 1fr 2rem 1fr;
 			column-gap: 0.5rem;
 		}
-
+		&-checkbox{
+			display: flex;
+			input{
+				margin-right: 4px;
+			}
+		}
 		&-items {
 			display: flex;
 			flex-direction: column;
