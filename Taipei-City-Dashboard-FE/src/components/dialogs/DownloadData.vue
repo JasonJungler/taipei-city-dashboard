@@ -29,11 +29,16 @@ const parsedJson = computed(() => {
 	return jsonString;
 });
 
-async function handleControlapi(){
-	const csvData = await http.get(
-			`/helper/data-csv/${dialogStore.moreInfoContent.index}`
-		);
-	console.log(csvData)
+async function handleDownLoadData(){
+	const csvData = await http.get(`/helper/data-csv/${dialogStore.moreInfoContent.index}`);
+	const jsonData = JSON.stringify(csvData.data.data);
+
+const blob = new Blob([jsonData], { type: 'application/json' });
+const downloadLink = document.createElement('a');
+downloadLink.href = URL.createObjectURL(blob);
+downloadLink.download = 'data.json'; 
+downloadLink.click();
+URL.revokeObjectURL(downloadLink.href);
 }
 
 const parsedCsv = computed(() => {
@@ -133,13 +138,8 @@ function handleClose() {
 					class="downloaddata-control-confirm"
 					@click="handleSubmit"
 				>
-					<!-- <a
-						:href="`data:text/csv;charset=utf-8,${baseDataJson}`"
-						:download="`${name}.json`"
-						>下載原始資料</a
-					> -->
 					<a
-						@click="handleControlapi"
+						@click="handleDownLoadData()"
 						>下載原始資料</a
 					>
 				</button>
