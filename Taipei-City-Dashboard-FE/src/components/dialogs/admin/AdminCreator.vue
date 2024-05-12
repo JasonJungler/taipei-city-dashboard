@@ -61,9 +61,9 @@ const newInputStorage = ref({
 	map: {
 		index: "",
 		title: "",
-		type: "",
+		type: "circle",
 		source: "geojson",
-		size: "",
+		size: "big",
 		icon: "",
 		paint: "",
 		property: "",
