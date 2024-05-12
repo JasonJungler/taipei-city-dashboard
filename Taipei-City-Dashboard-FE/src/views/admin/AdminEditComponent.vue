@@ -97,14 +97,7 @@ function handleDeleteComponent(component) {
 	dialogStore.showDialog("adminDeleteComponent");
 }
 
-function handleTestNewComponents() {
-  // no dialog or UI for this testing function
-  adminStore.newComponentMap = JSON.parse(JSON.stringify(testComponent.map));
-  console.log(adminStore.newComponentMap);
-  adminStore.newComponentChart = JSON.parse(JSON.stringify(testComponent.chart));
-  adminStore.newComponent = JSON.parse(JSON.stringify(testComponent.data));
-  adminStore.createComponent(searchParams.value)
-}
+
 
 function handleOpenCreator() {
 	dialogStore.showDialog("adminCreator");
@@ -144,9 +137,7 @@ onMounted(() => {
       <button @click="handleNewQuery">
         搜尋
       </button>
-      <button @click="handleTestNewComponents">
-        測試建立組件
-      </button>
+    
 	  <button class="creatcomponent" @click="handleOpenCreator()">建立組件</button>
     </div>
     <!-- 2. The main table displaying all public components -->
