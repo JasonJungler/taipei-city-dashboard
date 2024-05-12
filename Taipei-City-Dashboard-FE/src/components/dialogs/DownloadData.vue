@@ -36,7 +36,7 @@ async function handleDownLoadData(){
 const blob = new Blob([jsonData], { type: 'application/json' });
 const downloadLink = document.createElement('a');
 downloadLink.href = URL.createObjectURL(blob);
-downloadLink.download = 'data.json'; 
+downloadLink.download = `${name.value}.json`; 
 downloadLink.click();
 URL.revokeObjectURL(downloadLink.href);
 }
