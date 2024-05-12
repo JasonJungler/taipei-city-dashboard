@@ -259,8 +259,8 @@ export const useAdminStore = defineStore("admin", {
 			const newComponentMap = await http.post(`/component/map`, this.newComponentMap);
 			
 			// Create chart component
-			const newComponentChart = await http.post(`/component/chart`, this.newComponentChart);
-			this.newComponent.map_config_ids = [newComponentMap.index];
+			await http.post(`/component/chart`, this.newComponentChart);
+			this.newComponent.map_config_ids = [newComponentMap.ID];
 			
 			// Create component
 			await http.post(`/component/`, this.newComponent);

@@ -204,15 +204,29 @@ func DeleteComponent(id int, index string, mapConfigIDs pq.Int64Array) (deleteCh
 	}
 
 	// 3. Loop through mapconfigIds if it exists and delete the map config if no other components are using it
+	// if len(mapConfigIDs) > 0 {
+	// 	for _, mapConfigID := range mapConfigIDs {
+	// 		var mapConfigCount int64
+	// 		DBManager.Table("components").Where("map_config_ids @> ARRAY[?]::integer[]", mapConfigID).Count(&mapConfigCount)
+	// 		if mapConfigCount == 0 {
+	// 			err = DBManager.Table("component_maps").Where("id = ?", mapConfigID).Delete(ComponentMap{}).Error
+	// 		}
+	// 	}
+	// }
 	if len(mapConfigIDs) > 0 {
 		for _, mapConfigID := range mapConfigIDs {
 			var mapConfigCount int64
-			DBManager.Table("components").Where("map_config_ids @> ARRAY[?]::integer[]", mapConfigID).Count(&mapConfigCount)
+			if err := DBManager.Table("components").Where("map_config_ids @> ARRAY[?]::integer[]", mapConfigID).Count(&mapConfigCount).Error; err != nil {
+				return true, false, err
+			}
 			if mapConfigCount == 0 {
-				err = DBManager.Table("component_maps").Where("id = ?", mapConfigID).Delete(ComponentMap{}).Error
+				if err := DBManager.Table("component_maps").Where("id = ?", mapConfigID).Delete(ComponentMap{}).Error; err != nil {
+					return true, false, err
+				}
 			}
 		}
 	}
+
 	if err != nil {
 		return true, false, err
 	}
@@ -301,12 +315,6 @@ func CreateComponentMapConfig(componentIndex string, title string, mapType strin
 
 	// Save the new map config in the database
 	err = DBManager.Create(&mapConfig).Error
-	if err != nil {
-		return mapConfig, err
-	}
-
-	// Update the component's MapConfigIDs field with the new map config ID
-	err = DBManager.Model(&Component{}).Where("index = ?", componentIndex).UpdateColumn("map_config_ids", gorm.Expr("array_append(map_config_ids, ?)", mapConfig.ID)).Error
 	if err != nil {
 		return mapConfig, err
 	}
